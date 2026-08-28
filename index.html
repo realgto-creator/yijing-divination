@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>易經卜卦・銅錢問卦</title>
+<style>
+  :root{
+    --ink:#161512;
+    --paper:#F1E6C9;
+    --bronze:#C08A3E;
+    --bronze-soft:#E0B876;
+    --jade:#2E5C46;
+    --jade-soft:#4C8367;
+    --line:rgba(241,230,201,0.14);
+    --yang:#E0B876;
+    --yin:#8FB8A0;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(76,131,103,0.14), transparent 55%),
+      var(--ink);
+    color:var(--paper);
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:26px 16px 40px;
+  }
+  .app{ width:100%; max-width:400px; }
+  header{ text-align:center; margin-bottom:14px; }
+  header .eyebrow{
+    font-size:11.5px; letter-spacing:0.25em; color:var(--jade-soft); opacity:0.9; margin-bottom:6px;
+  }
+  header h1{
+    font-family:"Noto Serif TC",serif; font-size:24px; font-weight:700; margin:0; letter-spacing:0.05em;
+  }
+  header .sub{ font-size:12px; opacity:0.55; margin-top:6px; }
+
+  /* ---- 龜殼卜卦區 ---- */
+  .altar{
+    position:relative;
+    margin:26px auto 14px;
+    width:270px; height:270px;
+    display:flex; align-items:center; justify-content:center;
+    perspective:900px;
+  }
+  .ground-shadow{
+    position:absolute; bottom:-6px; left:50%; transform:translateX(-50%);
+    width:190px; height:26px; border-radius:50%;
+    background:radial-gradient(ellipse, rgba(0,0,0,0.55), transparent 72%);
+    filter:blur(2px);
+  }
+  .shell{
+    width:250px; height:250px;
+    border-radius:50%;
+    background:
+      radial-gradient(circle at 32% 26%, #7fc2a0 0%, #4c8367 30%, #2E5C46 62%, #16301f 100%);
+    box-shadow:
+      inset -22px -22px 46px rgba(0,0,0,0.55),
+      inset 16px 16px 34px rgba(255,255,255,0.14),
+      0 22px 34px rgba(0,0,0,0.5);
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+    transition:transform .1s ease;
+  }
+  .shell.shaking{ animation: shake 0.3s ease-in-out infinite; }
+  @keyframes shake{
+    0%,100%{ transform: rotate(0deg) translateX(0); }
+    25%{ transform: rotate(-3deg) translateX(-4px); }
+    75%{ transform: rotate(3deg) translateX(4px); }
+  }
+  .shell-pattern{
+    position:absolute; inset:16px; border-radius:50%;
+    background-image:
+      repeating-linear-gradient(60deg, rgba(0,0,0,0.16) 0 2px, transparent 2px 28px),
+      repeating-linear-gradient(-60deg, rgba(0,0,0,0.16) 0 2px, transparent 2px 28px),
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0 2px, transparent 2px 28px);
+    opacity:0.55;
+    mix-blend-mode:multiply;
+  }
+  .shell-gloss{
+    position:absolute; top:8%; left:14%; width:46%; height:30%;
+    border-radius:50%;
+    background:radial-gradient(ellipse, rgba(255,255,255,0.35), transparent 70%);
+    pointer-events:none;
+  }
+  .coins{
+    position:relative; display:flex; gap:14px; z-index:2;
+  }
+  .coin{
+    width:68px; height:68px;
+    perspective:600px;
+    -webkit-perspective:600px;
+  }
+  .coin-inner{
+    position:relative; width:100%; height:100%;
+    transform-style:preserve-3d;
+    -webkit-transform-style:preserve-3d;
+    transition:transform .15s linear;
+  }
+  .coin-face{
+    position:absolute; inset:0; border-radius:50%;
+    backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"Noto Serif TC",serif;
+    font-size:22px; font-weight:700; color:var(--ink);
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.45), 0 4px 8px rgba(0,0,0,0.45);
+  }
+  .coin-face.front{
+    background: radial-gradient(circle at 35% 30%, var(--bronze-soft), var(--bronze) 75%);
+    transform: rotateY(0deg);
+    -webkit-transform: rotateY(0deg);
+  }
+  .coin-face.back{
+    background: radial-gradient(circle at 35% 30%, #f0d9a3, #a97a34 75%);
+    transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg);
+  }
+  .coin-face::after{
+    content:""; position:absolute; width:14px; height:14px; background:rgba(46,92,70,0.5);
+    border-radius:2px;
+  }
+  .coin-tag{
+    text-align:center; font-size:11px; margin-top:6px; opacity:0; min-height:14px;
+    transition:opacity .3s ease; color:var(--bronze-soft); font-weight:700;
+  }
+  .coin-tag.show{ opacity:0.9; }
+  .coin-col{ display:flex; flex-direction:column; align-items:center; }
+
+  .btn-cast{
+    display:block; width:100%; margin-top:20px;
+    background:linear-gradient(180deg, var(--bronze-soft), var(--bronze));
+    color:var(--ink); border:none; border-radius:12px;
+    padding:14px; font-size:16px; font-weight:700;
+    font-family:"Noto Serif TC",serif; letter-spacing:0.08em;
+    box-shadow:0 6px 16px rgba(192,138,62,0.3);
+  }
+  .btn-cast:active{ transform:translateY(1px); }
+  .btn-cast:disabled{ opacity:0.5; }
+
+  .status{
+    text-align:center; font-size:12.5px; opacity:0.6; margin-top:10px; min-height:16px;
+  }
+
+  /* ---- 卦象顯示區 ---- */
+  .hexbox{
+    margin-top:22px;
+    background:rgba(241,230,201,0.05);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:18px 16px;
+    display:none;
+  }
+  .hexbox.show{ display:block; }
+  .hex-title{
+    text-align:center; font-size:12px; opacity:0.6; margin-bottom:10px; letter-spacing:0.1em;
+  }
+  .lines{
+    display:flex; flex-direction:column-reverse; gap:10px; align-items:center;
+  }
+  .line-row{
+    display:flex; align-items:center; gap:8px;
+    opacity:0; transform:translateY(6px);
+    transition:opacity .35s ease, transform .35s ease;
+  }
+  .line-row.appear{ opacity:1; transform:translateY(0); }
+  .bar{
+    width:120px; height:12px; display:flex; gap:14px;
+  }
+  .bar .seg{ background:var(--yang); border-radius:3px; flex:1; }
+  .bar.yin .seg{ background:var(--yin); }
+  .bar.yin{ }
+  .mover{
+    width:16px; height:16px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; color:var(--bronze-soft);
+    flex-shrink:0;
+  }
+  .mover.yang-move{ border:2px solid var(--yang); }
+  .mover.yin-move{ border:2px solid var(--yin); color:var(--yin); }
+  .mover.empty{ visibility:hidden; }
+  .yao-label{ font-size:11px; opacity:0.5; width:28px; text-align:right; }
+
+  /* ---- 結果卡 ---- */
+  .result{
+    background:var(--paper); color:var(--ink);
+    border-radius:16px; padding:18px 20px 20px; margin-top:18px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.35);
+    display:none;
+  }
+  .result.show{ display:block; }
+  .result .pair{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 0; border-bottom:1px solid rgba(26,22,19,0.12);
+  }
+  .result .pair:last-of-type{ border-bottom:none; }
+  .result .pair .k{ font-size:12.5px; color:#5b4a33; }
+  .result .pair .v{ font-family:"Noto Serif TC",serif; font-size:19px; font-weight:700; }
+  .movers-line{ font-size:13.5px; margin-top:10px; color:#332616; line-height:1.7; }
+  .rule-box{
+    margin-top:12px; padding-top:12px; border-top:1px solid rgba(26,22,19,0.12);
+    font-size:13px; line-height:1.75; color:#332616;
+  }
+  .rule-box b{ color:#2E5C46; }
+
+  .guaci-box{
+    font-size:13px; line-height:1.7; color:#4a3a24;
+    background:rgba(46,92,70,0.07);
+    border-left:3px solid var(--jade);
+    padding:8px 10px; border-radius:6px;
+    margin:4px 0 8px;
+  }
+
+  .notes-box{
+    margin-top:14px; padding-top:14px; border-top:1px solid rgba(26,22,19,0.12);
+  }
+  .notes-title{ font-size:13px; font-weight:700; color:var(--ink); margin-bottom:4px; }
+  .notes-hint{ font-size:11.5px; color:#5b4a33; line-height:1.6; margin-bottom:8px; }
+  .notes-box textarea{
+    width:100%; min-height:80px; border-radius:8px; border:1px solid rgba(26,22,19,0.2);
+    padding:9px 10px; font-size:13.5px; font-family:inherit; color:var(--ink);
+    background:#fffdf6; resize:vertical;
+  }
+  .btn-save-note{
+    margin-top:8px; width:100%; padding:9px; border:none; border-radius:8px;
+    background:var(--jade); color:var(--paper); font-size:13px; font-weight:600;
+  }
+  .notes-saved{ font-size:11px; color:var(--jade); margin-top:6px; min-height:14px; }
+
+  .links{ display:flex; gap:8px; margin-top:14px; }
+  .links a{
+    flex:1; text-align:center; padding:10px; border-radius:9px;
+    background:var(--jade); color:var(--paper); text-decoration:none;
+    font-size:12.5px; font-weight:600;
+  }
+
+  footer{
+    text-align:center; font-size:11px; line-height:1.7; opacity:0.42;
+    margin-top:22px; padding-top:14px; border-top:1px solid var(--line);
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="eyebrow">TAIWAN FOLK DIVINATION</div>
+    <h1>易經銅錢卜卦</h1>
+    <div class="sub">誠心一問・搖出本卦與之卦</div>
+  </header>
+
+  <div class="altar">
+    <div class="ground-shadow"></div>
+    <div class="shell" id="shell">
+      <div class="shell-pattern"></div>
+      <div class="shell-gloss"></div>
+      <div class="coins" id="coins">
+        <div class="coin-col">
+          <div class="coin" data-i="0"><div class="coin-inner"><div class="coin-face front">字</div><div class="coin-face back">陽</div></div></div>
+          <div class="coin-tag" data-tag="0"></div>
+        </div>
+        <div class="coin-col">
+          <div class="coin" data-i="1"><div class="coin-inner"><div class="coin-face front">字</div><div class="coin-face back">陽</div></div></div>
+          <div class="coin-tag" data-tag="1"></div>
+        </div>
+        <div class="coin-col">
+          <div class="coin" data-i="2"><div class="coin-inner"><div class="coin-face front">字</div><div class="coin-face back">陽</div></div></div>
+          <div class="coin-tag" data-tag="2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-cast" id="castBtn">🐢 搖卦問卜</button>
+  <div class="status" id="status">心中默想所問之事，再點上方按鈕</div>
+
+  <div class="hexbox" id="hexbox">
+    <div class="hex-title">起卦過程（由下往上）</div>
+    <div class="lines" id="lines"></div>
+  </div>
+
+  <div class="result" id="result">
+    <div class="pair"><span class="k">本卦</span><span class="v" id="benGua">－</span></div>
+    <div class="guaci-box" id="benGuaci"></div>
+    <div class="pair" style="margin-top:6px;"><span class="k">之卦</span><span class="v" id="zhiGua">－</span></div>
+    <div class="guaci-box" id="zhiGuaci"></div>
+    <div class="movers-line" id="moversLine"></div>
+    <div class="rule-box" id="ruleBox"></div>
+
+    <div class="notes-box">
+      <div class="notes-title">📖 我的解讀筆記（本卦第 <span id="notesNum">-</span> 卦）</div>
+      <div class="notes-hint">這裡完全空白，是特地留給你的。翻開王思迅老師的書或課程筆記，把老師對這一卦的講解，用你自己的話記下來，下次搖到同一卦就能直接看到。</div>
+      <textarea id="notesArea" placeholder="例如：老師說這一卦的重點是……"></textarea>
+      <button class="btn-save-note" id="saveNoteBtn">儲存筆記</button>
+      <div class="notes-saved" id="notesSaved"></div>
+    </div>
+
+    <div class="links" id="links"></div>
+  </div>
+
+  <footer>
+    起卦方式採傳統三枚銅錢法，卦名、卦辭與動爻判斷經程式精確運算。<br>
+    卦辭為《周易》公版原文，古今版本用字或略有出入（如无/無、于/於），請以你手邊版本為準。<br>
+    王思迅老師書中與課程的白話講解為老師個人著作，這裡不會複製老師的原文，但特別留了「個人筆記」欄位，讓你把老師的講解記錄在你自己的手機裡。
+  </footer>
+</div>
+
+<script>
+// ---------- 64卦對照表（下卦×上卦），資料來源：權威易學網站verified table ----------
+// 索引順序：0天(乾) 1澤(兌) 2火(離) 3雷(震) 4風(巽) 5水(坎) 6山(艮) 7地(坤)
+const TRIGRAM_NAMES = ["乾","兌","離","震","巽","坎","艮","坤"];
+const TRIGRAM_SYMS  = ["天","澤","火","雷","風","水","山","地"];
+// 每個三爻卦的（初,二,三）陽=1陰=0
+const TRIGRAM_BITS = {
+  "111":0, // 乾
+  "110":1, // 兌
+  "101":2, // 離
+  "100":3, // 震
+  "011":4, // 巽
+  "010":5, // 坎
+  "001":6, // 艮
+  "000":7  // 坤
+};
+
+// TABLE[下卦idx][上卦idx] = [卦序, 卦名]
+const TABLE = [
+/*下天*/ [[1,"乾為天"],[43,"澤天夬"],[14,"火天大有"],[34,"雷天大壯"],[9,"風天小畜"],[5,"水天需"],[26,"山天大畜"],[11,"地天泰"]],
+/*下澤*/ [[10,"天澤履"],[58,"兌為澤"],[38,"火澤睽"],[54,"雷澤歸妹"],[61,"風澤中孚"],[60,"水澤節"],[41,"山澤損"],[19,"地澤臨"]],
+/*下火*/ [[13,"天火同人"],[49,"澤火革"],[30,"離為火"],[55,"雷火豐"],[37,"風火家人"],[63,"水火既濟"],[22,"山火賁"],[36,"地火明夷"]],
+/*下雷*/ [[25,"天雷无妄"],[17,"澤雷隨"],[21,"火雷噬嗑"],[51,"震為雷"],[42,"風雷益"],[3,"水雷屯"],[27,"山雷頤"],[24,"地雷復"]],
+/*下風*/ [[44,"天風姤"],[28,"澤風大過"],[50,"火風鼎"],[32,"雷風恆"],[57,"巽為風"],[48,"水風井"],[18,"山風蠱"],[46,"地風升"]],
+/*下水*/ [[6,"天水訟"],[47,"澤水困"],[64,"火水未濟"],[40,"雷水解"],[59,"風水渙"],[29,"坎為水"],[4,"山水蒙"],[7,"地水師"]],
+/*下山*/ [[33,"天山遯"],[31,"澤山咸"],[56,"火山旅"],[62,"雷山小過"],[53,"風山漸"],[39,"水山蹇"],[52,"艮為山"],[15,"地山謙"]],
+/*下地*/ [[12,"天地否"],[45,"澤地萃"],[35,"火地晉"],[16,"雷地豫"],[20,"風地觀"],[8,"水地比"],[23,"山地剝"],[2,"坤為地"]]
+];
+
+// ---------- 64卦卦辭（周易公版原文） ----------
+const GUACI = {
+  1:"元亨，利貞。",
+  2:"元亨，利牝馬之貞。君子有攸往，先迷後得主，利。西南得朋，東北喪朋。安貞吉。",
+  3:"元亨利貞。勿用有攸往，利建侯。",
+  4:"亨。匪我求童蒙，童蒙求我。初筮告，再三瀆，瀆則不告。利貞。",
+  5:"有孚，光亨，貞吉。利涉大川。",
+  6:"有孚，窒惕，中吉，終凶。利見大人，不利涉大川。",
+  7:"貞，丈人吉，无咎。",
+  8:"吉。原筮元永貞，无咎。不寧方來，後夫凶。",
+  9:"亨。密雲不雨，自我西郊。",
+  10:"履虎尾，不咥人，亨。",
+  11:"小往大來，吉亨。",
+  12:"否之匪人，不利君子貞，大往小來。",
+  13:"同人于野，亨。利涉大川，利君子貞。",
+  14:"元亨。",
+  15:"亨，君子有終。",
+  16:"利建侯行師。",
+  17:"元亨利貞，无咎。",
+  18:"元亨，利涉大川。先甲三日，後甲三日。",
+  19:"元亨利貞。至于八月有凶。",
+  20:"盥而不薦，有孚顒若。",
+  21:"亨。利用獄。",
+  22:"亨。小利有攸往。",
+  23:"不利有攸往。",
+  24:"亨。出入无疾，朋來无咎。反復其道，七日來復，利有攸往。",
+  25:"元亨利貞。其匪正有眚，不利有攸往。",
+  26:"利貞。不家食，吉。利涉大川。",
+  27:"貞吉。觀頤，自求口實。",
+  28:"棟橈。利有攸往，亨。",
+  29:"有孚，維心亨，行有尚。",
+  30:"利貞，亨。畜牝牛，吉。",
+  31:"亨，利貞。取女吉。",
+  32:"亨，无咎，利貞。利有攸往。",
+  33:"亨，小利貞。",
+  34:"利貞。",
+  35:"康侯用錫馬蕃庶，晝日三接。",
+  36:"利艱貞。",
+  37:"利女貞。",
+  38:"小事吉。",
+  39:"利西南，不利東北。利見大人，貞吉。",
+  40:"利西南。无所往，其來復吉。有攸往，夙吉。",
+  41:"有孚，元吉，无咎，可貞，利有攸往。曷之用，二簋可用享。",
+  42:"利有攸往，利涉大川。",
+  43:"揚于王庭，孚號有厲。告自邑，不利即戎，利有攸往。",
+  44:"女壯，勿用取女。",
+  45:"亨。王假有廟，利見大人，亨，利貞。用大牲吉，利有攸往。",
+  46:"元亨，用見大人，勿恤，南征吉。",
+  47:"亨，貞，大人吉，无咎。有言不信。",
+  48:"改邑不改井，无喪无得，往來井井。汔至，亦未繘井，羸其瓶，凶。",
+  49:"己日乃孚，元亨利貞，悔亡。",
+  50:"元吉，亨。",
+  51:"亨。震來虩虩，笑言啞啞。震驚百里，不喪匕鬯。",
+  52:"艮其背，不獲其身，行其庭，不見其人，无咎。",
+  53:"女歸吉，利貞。",
+  54:"征凶，无攸利。",
+  55:"亨，王假之，勿憂，宜日中。",
+  56:"小亨，旅貞吉。",
+  57:"小亨，利有攸往，利見大人。",
+  58:"亨，利貞。",
+  59:"亨。王假有廟，利涉大川，利貞。",
+  60:"亨。苦節不可貞。",
+  61:"豚魚吉，利涉大川，利貞。",
+  62:"亨，利貞。可小事，不可大事。飛鳥遺之音，不宜上宜下，大吉。",
+  63:"亨，小利貞。初吉終亂。",
+  64:"亨。小狐汔濟，濡其尾，无攸利。"
+};
+
+function hexInfo(bits6){ // bits6: array of 6 (0/1), index0=初爻...index5=上爻
+  const lower = bits6[0]+""+bits6[1]+""+bits6[2];
+  const upper = bits6[3]+""+bits6[4]+""+bits6[5];
+  const li = TRIGRAM_BITS[lower], ui = TRIGRAM_BITS[upper];
+  return { idx:li, uidx:ui, ...TABLE[li][ui][1] ? {} : {} , num:TABLE[li][ui][0], name:TABLE[li][ui][1] };
+}
+
+function yaoName(pos, isYang){ // pos: 1~6
+  const sym = isYang ? "九" : "六";
+  if(pos===1) return "初"+sym;
+  if(pos===6) return "上"+sym;
+  const mid = ["","初","二","三","四","五","上"][pos];
+  return sym+mid;
+}
+
+// ---------- 起卦流程 ----------
+const shell = document.getElementById('shell');
+const coinsEl = document.getElementById('coins');
+const castBtn = document.getElementById('castBtn');
+const statusEl = document.getElementById('status');
+const hexbox = document.getElementById('hexbox');
+const linesEl = document.getElementById('lines');
+const resultEl = document.getElementById('result');
+
+function tossCoin(){
+  // 字面(有文字)=2分(陰) 花面=3分(陽)，機率各半
+  return Math.random() < 0.5 ? 2 : 3;
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+const coinEls = [...document.querySelectorAll('.coin')];
+const tagEls = [...document.querySelectorAll('.coin-tag')];
+
+async function castOnce(){
+  shell.classList.add('shaking');
+  tagEls.forEach(t=>{ t.classList.remove('show'); t.textContent=''; });
+
+  // 手動逐格驅動旋轉角度，避免部分手機瀏覽器對 CSS keyframes 動畫在巢狀 3D 情境下失效
+  const inners = coinEls.map(c => c.querySelector('.coin-inner'));
+  let angle = 0;
+  const spinSteps = 14;
+  for(let s=0; s<spinSteps; s++){
+    angle += 140;
+    inners.forEach(inner => {
+      inner.style.transition = 'none';
+      inner.style.transform = `rotateY(${angle}deg)`;
+      inner.style.webkitTransform = `rotateY(${angle}deg)`;
+    });
+    await sleep(45);
+  }
+
+  const results = [tossCoin(), tossCoin(), tossCoin()]; // 2=字(陰) 3=花(陽)
+
+  shell.classList.remove('shaking');
+  inners.forEach((inner,idx)=>{
+    inner.style.transition = 'transform .35s ease-out';
+    const isFront = results[idx]===2; // 字面
+    const finalAngle = isFront ? 0 : 180;
+    inner.style.transform = `rotateY(${finalAngle}deg)`;
+    inner.style.webkitTransform = `rotateY(${finalAngle}deg)`;
+  });
+  await sleep(300);
+  tagEls.forEach((t,idx)=>{
+    t.textContent = results[idx]===2 ? '字（陰）' : '花（陽）';
+    t.classList.add('show');
+  });
+
+  const sum = results[0]+results[1]+results[2]; // 6,7,8,9
+  return sum;
+}
+
+castBtn.addEventListener('click', async ()=>{
+  castBtn.disabled = true;
+  hexbox.classList.add('show');
+  resultEl.classList.remove('show');
+  linesEl.innerHTML = '';
+  const raw = []; // 6,7,8,9 由下而上
+
+  for(let i=1;i<=6;i++){
+    statusEl.textContent = `第 ${i} 次搖卦中…（共六次，由下往上）`;
+    const val = await castOnce();
+    raw.push(val);
+
+    const isYang = (val===7 || val===9);
+    const isMoving = (val===6 || val===9);
+    const row = document.createElement('div');
+    row.className = 'line-row';
+    row.innerHTML = `
+      <span class="yao-label">${yaoName(i, isYang)}</span>
+      <div class="bar ${isYang?'':'yin'}">${isYang ? '<div class="seg"></div>' : '<div class="seg"></div><div class="seg"></div>'}</div>
+      <div class="mover ${isMoving ? (isYang?'yang-move':'yin-move') : 'empty'}">${isMoving ? (isYang?'○':'✕') : ''}</div>
+    `;
+    linesEl.appendChild(row);
+    await sleep(60);
+    row.classList.add('appear');
+    await sleep(320);
+  }
+
+  statusEl.textContent = '起卦完成';
+  castBtn.disabled = false;
+
+  // 本卦
+  const benBits = raw.map(v => (v===7||v===9) ? 1 : 0);
+  const ben = hexInfo(benBits);
+
+  // 之卦（老陰6→陽1，老陽9→陰0，其餘不變）
+  const zhiBits = raw.map(v => v===6 ? 1 : (v===9 ? 0 : (v===7?1:0)));
+  const zhi = hexInfo(zhiBits);
+
+  // 動爻列表
+  const movers = [];
+  raw.forEach((v,i)=>{
+    if(v===6 || v===9){
+      const isYang = v===9;
+      movers.push(yaoName(i+1, isYang));
+    }
+  });
+
+  document.getElementById('benGua').textContent = `${ben.num}. ${ben.name}`;
+  document.getElementById('zhiGua').textContent = (ben.num===zhi.num) ? '（六爻不變，同本卦）' : `${zhi.num}. ${zhi.name}`;
+  document.getElementById('benGuaci').textContent = `卦辭：${GUACI[ben.num]}`;
+  document.getElementById('zhiGuaci').textContent = (ben.num===zhi.num) ? '' : `之卦卦辭：${GUACI[zhi.num]}`;
+  document.getElementById('zhiGuaci').style.display = (ben.num===zhi.num) ? 'none' : 'block';
+
+  const moversLine = document.getElementById('moversLine');
+  if(movers.length===0){
+    moversLine.textContent = '本次卦象六爻皆靜，無動爻。';
+  } else {
+    moversLine.textContent = `動爻共 ${movers.length} 個：${movers.join('、')}`;
+  }
+
+  const ruleBox = document.getElementById('ruleBox');
+  const n = movers.length;
+  let ruleText = '';
+  if(n===0){
+    ruleText = '<b>解卦通則：</b>零爻動，以本卦卦辭為準來看整體局勢。';
+  } else if(n===1){
+    ruleText = `<b>解卦通則：</b>一爻動，以「${movers[0]}」該爻的爻辭為主要依據。`;
+  } else if(n===2){
+    ruleText = `<b>解卦通則：</b>兩爻動，傳統上以位置較高的動爻（${movers[movers.length-1]}）爻辭為主，位置較低者為輔助參考。`;
+  } else if(n===3){
+    ruleText = '<b>解卦通則：</b>三爻動，本卦與之卦的卦辭並看，通常以之卦卦辭為主要參考方向。';
+  } else if(n===4){
+    ruleText = '<b>解卦通則：</b>四爻動，取之卦中兩個不變爻裡，位置較低的那一爻爻辭為主。';
+  } else if(n===5){
+    ruleText = '<b>解卦通則：</b>五爻動，取之卦中唯一不變的那一爻爻辭為主。';
+  } else if(n===6){
+    if(ben.num===1 || ben.num===2){
+      ruleText = '<b>解卦通則：</b>六爻全動，乾卦用「用九」、坤卦用「用六」的爻辭來看。';
+    } else {
+      ruleText = '<b>解卦通則：</b>六爻全動，直接以之卦的卦辭為準。';
+    }
+  }
+  ruleText += '<br>以上為傳統占卦通則，實際細膩解讀（吉凶輕重、應期等），建議搭配王思迅老師書中對本卦、動爻的白話講解一起參看，會更貼近老師的完整邏輯。';
+  ruleBox.innerHTML = ruleText;
+
+  const linksEl = document.getElementById('links');
+  linksEl.innerHTML = `
+    <a href="https://www.eee-learning.com/simple64/${ben.num}" target="_blank" rel="noopener">查看本卦原文</a>
+    ${ben.num!==zhi.num ? `<a href="https://www.eee-learning.com/simple64/${zhi.num}" target="_blank" rel="noopener">查看之卦原文</a>` : ''}
+  `;
+
+  // ---- 個人筆記（存在這支手機的瀏覽器裡，離線可用） ----
+  const noteKey = 'yijing-note-' + ben.num;
+  const notesArea = document.getElementById('notesArea');
+  const notesSaved = document.getElementById('notesSaved');
+  document.getElementById('notesNum').textContent = ben.num;
+  let savedNote = '';
+  try{ savedNote = localStorage.getItem(noteKey) || ''; }catch(e){}
+  notesArea.value = savedNote;
+  notesSaved.textContent = savedNote ? '（先前已儲存過這一卦的筆記）' : '';
+
+  document.getElementById('saveNoteBtn').onclick = () => {
+    try{
+      localStorage.setItem(noteKey, notesArea.value);
+      notesSaved.textContent = '已儲存 ✓ （' + new Date().toLocaleString('zh-TW') + '）';
+    }catch(e){
+      notesSaved.textContent = '儲存失敗，這台裝置可能不支援本機儲存。';
+    }
+  };
+
+  resultEl.classList.add('show');
+});
+</script>
+</body>
+</html>
